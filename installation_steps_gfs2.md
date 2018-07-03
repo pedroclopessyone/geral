@@ -14,14 +14,18 @@
 ## <span style="color:blue">**Pacemaker Steps:**</span>
 
 * **Cluster Software Installation:**
-	* yum install pcs pacemaker fence-agents-all
-	* passwd hacluster <!-- password convem ser igual em todos os nós-->
-	* systemctl start pcsd.service
-	* systemctl enable pcsd.service
-	* pcs cluster auth server1.redhat.com server2.redhat.com
-	* pcs cluster setup --start --name my_cluster server1.redhat.com server2.redhat.com
-	* pcs cluster enable --all
-	* pcs cluster status
+	* yum install pcs pacemaker fence-agents-all <!--to be executed on all nodes-->
+	<!--If firewall is enable, open the proper ports:
+	firewall-cmd --permanent --add-service=high-availability
+	firewall-cmd --add-service=high-availability
+	-->
+	* passwd hacluster <!--to be executed on all nodes-->
+	* systemctl start pcsd.service <!--to be executed on all nodes-->
+	* systemctl enable pcsd.service <!--to be executed on all nodes-->
+	* pcs cluster auth server1.redhat.com server2.redhat.com <!--can be executed on the first node-->
+	* pcs cluster setup --start --name my_cluster server1.redhat.com server2.redhat.com <!--can be executed on the first node-->
+	* pcs cluster enable --all <!--can be executed on the first node-->
+	* pcs cluster status <!--can be executed on the first node-->
 
 <br>
 
@@ -62,18 +66,18 @@
 
 * **Configure a GFS2 FileSystem in a Cluster:**
 
-	* yum install lvm2-cluster gfs2-utils
-	* pcs property set no-quorum-policy=freeze <Set the global Pacemaker parameter no_quorum_policy to freeze.>
-	* pcs resource create dlm ocf:pacemaker:controld op monitor interval=30s on-fail=fence clone interleave=true ordered=true
-	* /sbin/lvmconf --enable-cluster
-	* pcs resource create clvmd ocf:heartbeat:clvm op monitor interval=30s on-fail=fence clone interleave=true ordered=true
-	* pcs constraint order start dlm-clone then clvmd-clone
-	* pcs constraint colocation add clvmd-clone with dlm-clone
-	* pvcreate /dev/vdb
-	* vgcreate -Ay -cy cluster_vg /dev/vdb
-	* lvcreate -L5G -n cluster_lv cluster_vg
-	* mkfs.gfs2 -j2 -p lock_dlm -t rhel7-demo:gfs2-demo /dev/cluster_vg/cluster_lv
-	* pcs resource create clusterfs Filesystem device="/dev/cluster_vg/cluster_lv" directory="/var/mountpoint" fstype="gfs2" "options=noatime" op monitor interval=10s on-fail=fence clone interleave=true
-	* pcs constraint order start clvmd-clone then clusterfs-clone
-	* pcs constraint colocation add clusterfs-clone with clvmd-clone
+	* yum install lvm2-cluster gfs2-utils <!--to be executed on all nodes-->
+	* pcs property set no-quorum-policy=freeze <!-- Set the global Pacemaker parameter no_quorum_policy to freeze. -->
+	* pcs resource create dlm ocf:pacemaker:controld op monitor interval=30s on-fail=fence clone interleave=true ordered=true <!--can be executed on the first node-->
+	* /sbin/lvmconf --enable-cluster <!--can be executed on the first node-->
+	* pcs resource create clvmd ocf:heartbeat:clvm op monitor interval=30s on-fail=fence clone interleave=true ordered=true <!--can be executed on the first node-->
+	* pcs constraint order start dlm-clone then clvmd-clone <!--can be executed on the first node-->
+	* pcs constraint colocation add clvmd-clone with dlm-clone <!--can be executed on the first node-->
+	* pvcreate /dev/vdb <!--to be executed on all nodes-->
+	* vgcreate -Ay -cy cluster_vg /dev/vdb <!--to be executed on all nodes-->
+	* lvcreate -L5G -n cluster_lv cluster_vg <!--to be executed on all nodes-->
+	* mkfs.gfs2 -j2 -p lock_dlm -t rhel7-demo:gfs2-demo /dev/cluster_vg/cluster_lv <!--to be executed on all nodes-->
+	* pcs resource create clusterfs Filesystem device="/dev/cluster_vg/cluster_lv" directory="/var/mountpoint" fstype="gfs2" "options=noatime" op monitor interval=10s on-fail=fence clone interleave=true <!--can be executed on first node-->
+	* pcs constraint order start clvmd-clone then clusterfs-clone <!--can be executed on first node-->
+	* pcs constraint colocation add clusterfs-clone with clvmd-clone <!--can be executed on first node-->
 	* mount |grep /mnt/gfs2-demo
