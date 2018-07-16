@@ -16,7 +16,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 EOF
 setenforce 0
 #yum install -y kubelet kubeadm kubectl ==> instala a ultima versao dos componentes. atualmente 1.11.0
-yum install kubelet-1.10.5 kubeadm-1.10.5 kubectl-1.10.5 -y
+yum install kubelet-1.10.5 kubeadm-1.10.5 kubectl-1.10.5 -y #  ==> instala especificamente a versão 1.10.5 dos componentes.
 systemctl enable kubelet && systemctl start kubelet
 
 ### Solve issue regarding traffic being routed incorrectly due to iptables being bypassed
